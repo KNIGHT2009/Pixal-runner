@@ -290,7 +290,7 @@ function createObstacle() {
     obstacles.push(obstacleData);
 }
 
-// Move and check obstacles - Optimized collision detection
+// Move and check obstacles - Fixed collision detection
 function updateObstacles(timestamp) {
     if (!isGameRunning || isPaused) return;
     
@@ -300,46 +300,34 @@ function updateObstacles(timestamp) {
     }
     lastObstacleUpdate = timestamp;
     
-    // Calculate player bounding box (cached values + jump offset)
-    const playerBottom = player.classList.contains('jumping') ? 60 + 150 : 60;
+    // Player position - fixed horizontal position
     const playerLeft = 40;
-    const playerWidth = 35;
-    const playerHeight = 40;
+    const playerRight = 75; // 40 + 35
+    const playerBottom = 60;
+    const playerTop = 100; // 60 + 40
+    
+    // Check if player is jumping (CSS adds 'jumping' class)
+    const isJumping = player.classList.contains('jumping');
     
     for (let i = obstacles.length - 1; i >= 0; i--) {
         const obs = obstacles[i];
         obs.position -= gameSpeed;
         obs.element.style.left = obs.position + 'px';
         
-        // Optimized collision detection using cached positions
-        // No getBoundingClientRect() - avoids reflow
+        // Obstacle horizontal bounds
         const obsLeft = obs.position;
         const obsRight = obs.position + obs.width;
-        const playerRight = playerLeft + playerWidth;
+        const obsTop = 60 + obs.height;
         
-        // Ground level collision check
-        const groundLevel = 60;
-        
-        // Check if obstacle is at ground level
-        if (obs.height >= 40) {
-            // Collision detection with optimized calculations
-            if (
-                playerRight - 8 > obsLeft + 8 &&
-                playerLeft + 8 < obsRight - 8 &&
-                playerBottom - 8 > groundLevel
-            ) {
-                // Hit! Check if invulnerable
-                if (!invulnerable) {
-                    handleHit();
-                }
-            }
-        } else {
-            // For shorter obstacles
-            if (
-                playerRight - 8 > obsLeft + 8 &&
-                playerLeft + 8 < obsRight - 8 &&
-                playerBottom - 8 > groundLevel
-            ) {
+        // Only check collision if player is NOT jumping
+        // When jumping, player goes up and clears obstacles
+        if (!isJumping) {
+            // Check if horizontally overlapping
+            // Use small tolerance (5px) for fairness
+            const horizontalOverlap = playerRight > obsLeft + 5 && playerLeft < obsRight - 5;
+            
+            if (horizontalOverlap) {
+                // Collision! Player is on ground and overlaps with obstacle
                 if (!invulnerable) {
                     handleHit();
                 }
