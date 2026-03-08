@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Pixel Runner</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="score-board">
+                <div>
+                    <span class="score-label">SCORE</span>
+                    <span class="score-value" id="score">00000</span>
+                </div>
+                <div>
+                    <span class="high-score-label">HI</span>
+                    <span class="high-score-value" id="highScore">00000</span>
+                </div>
+                <div>
+                    <span class="lives-label">❤</span>
+                    <div id="lives">❤️❤️❤️</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-canvas" id="gameCanvas">
+            <!-- Moving Background -->
+            <div class="background">
+                <!-- Stars Layer 1 (slow) -->
+                <div class="stars stars-1"></div>
+                <!-- Stars Layer 2 (medium) -->
+                <div class="stars stars-2"></div>
+                <!-- Clouds -->
+                <div class="clouds">
+                    <div class="cloud cloud-1"></div>
+                    <div class="cloud cloud-2"></div>
+                    <div class="cloud cloud-3"></div>
+                </div>
+            </div>
+            
+            <!-- Ground -->
+            <div class="ground"></div>
+            
+            <!-- Player -->
+            <div class="player" id="player">
+                <div class="player-inner"></div>
+            </div>
+            
+            <!-- Obstacles -->
+            <div class="obstacles" id="obstacles"></div>
+            
+            <!-- Start Screen -->
+            <div class="start-screen" id="startScreen">
+                <div class="game-title">PIXEL RUNNER</div>
+                <div class="tap-text">TAP TO START</div>
+            </div>
+            
+            <!-- Game Over -->
+            <div class="game-over hidden" id="gameOver">
+                <div class="game-over-text">GAME OVER</div>
+                <div class="score-text">SCORE: <span id="finalScore">0</span></div>
+                <div class="tap-text">TAP TO RESTART</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/game.js"></script>
+</body>
+</html>
+

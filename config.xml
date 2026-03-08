@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.pixelrunner.game" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Pixel Runner</name>
+    <description>
+        An endless runner arcade game - tap to jump and survive!
+    </description>
+    <author email="developer@example.com" href="https://example.com">
+        Game Developer
+    </author>
+    <content src="index.html" />
+    
+    <!-- Platform configuration -->
+    <platform name="android">
+        <allow-intent href="market:*" />
+        <icon density="ldpi" src="res/icons/android/ldpi.png" />
+        <icon density="mdpi" src="res/icons/android/mdpi.png" />
+        <icon density="hdpi" src="res/icons/android/hdpi.png" />
+        <icon density="xhdpi" src="res/icons/android/xhdpi.png" />
+        <icon density="xxhdpi" src="res/icons/android/xxhdpi.png" />
+        <icon density="xxxhdpi" src="res/icons/android/xxxhdpi.png" />
+        <splash density="land-ldpi" src="res/screens/android/land-ldpi.png" />
+        <splash density="land-mdpi" src="res/screens/android/land-mdpi.png" />
+        <splash density="land-hdpi" src="res/screens/android/land-hdpi.png" />
+        <splash density="land-xhdpi" src="res/screens/android/land-xhdpi.png" />
+    </platform>
+    
+    <!-- Preferences -->
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="BackgroundColor" value="0xff1a1a2e" />
+    <preference name="HideKeyboardFormAccessoryBar" value="true" />
+    <preference name="Fullscreen" value="false" />
+    <preference name="Orientation" value="portrait" />
+    <preference name="SplashScreenDelay" value="3000" />
+    <preference name="AutoHideSplashScreen" value="true" />
+    
+    <!-- Android specific preferences -->
+    <preference name="android-minSdkVersion" value="22" />
+    <preference name="android-targetSdkVersion" value="33" />
+    <preference name="android-installLocation" value="auto" />
+    
+    <!-- Permissions -->
+    <access origin="*" />
+    
+    <!-- Plugin: Status Bar -->
+    <plugin name="cordova-plugin-statusbar" spec="~2.4.2" />
+    
+    <!-- Plugin: Splash Screen -->
+    <plugin name="cordova-plugin-splashscreen" spec="~6.0.0" />
+</widget>
+
