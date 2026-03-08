@@ -1,4 +1,4 @@
-// Pixel Runner - Enhanced Version with Lives, Double Jump, Combo & Pause
+// Pixel Runner - Mobile Optimized Version
 
 // Game variables
 let isGameRunning = false;
@@ -11,8 +11,8 @@ let maxSpeed = 5;
 let speedIncrement = 0.1;
 let animationId = null;
 let obstacles = [];
-let obstacleTimeout = null;  // Track the timeout
-let groundElement = null;     // Will be initialized when DOM is ready
+let obstacleTimeout = null;
+let groundElement = null;
 
 // New features
 let lives = 3;
@@ -22,9 +22,24 @@ let combo = 0;
 let comboTimer = null;
 let invulnerable = false;
 let invulnerableTimer = null;
+let flashIntervalId = null;
 
 // Audio context - lazily initialized
 let audioCtx = null;
+
+// Performance optimization variables
+let lastFrameTime = 0;
+let lastObstacleUpdate = 0;
+const MOBILE_FPS_LIMIT = 60;
+const FRAME_TIME = 1000 / MOBILE_FPS_LIMIT;
+
+// Cached player position for collision detection (avoids getBoundingClientRect)
+const playerPosition = {
+    left: 40,
+    bottom: 60,
+    width: 35,
+    height: 40
+};
 
 // DOM Elements
 const gameCanvas = document.getElementById('gameCanvas');
@@ -36,12 +51,15 @@ const startScreen = document.getElementById('startScreen');
 const gameOverScreen = document.getElementById('gameOver');
 const finalScoreElement = document.getElementById('finalScore');
 
+// Mobile detection
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+
 // Initialize ground element after DOM is ready
 function initGroundElement() {
     groundElement = document.querySelector('.ground');
 }
 
-// Create UI elements for new features (without lives - already in HTML)
+// Create UI elements for new features
 function createUI() {
     // Combo display
     if (!document.getElementById('comboContainer')) {
@@ -65,7 +83,7 @@ function createUI() {
 function updateLivesDisplay() {
     const livesEl = document.getElementById('lives');
     if (livesEl) {
-        livesEl.textContent = '❤️'.repeat(lives);
+        livesEl.textContent = '❤️'.repeat(Math.max(0, lives));
     }
 }
 
@@ -92,7 +110,6 @@ function loadHighScore() {
             updateHighScoreDisplay();
         }
     } catch (e) {
-        // localStorage not available (private browsing, etc.)
         console.warn('Could not load high score:', e);
     }
 }
@@ -105,7 +122,6 @@ function saveHighScore() {
             localStorage.setItem('pixelRunnerHighScore', highScore);
             updateHighScoreDisplay();
         } catch (e) {
-            // localStorage not available
             console.warn('Could not save high score:', e);
         }
     }
@@ -125,9 +141,10 @@ function updateHighScoreDisplay() {
 
 // Update ground animation speed based on game speed
 function updateGroundAnimation() {
-    const animSpeed = Math.max(0.3, 1 - (gameSpeed - 3) / 10);
-    groundElement.style.setProperty('--ground-speed', animSpeed + 's');
-    document.documentElement.style.setProperty('--ground-animation-duration', animSpeed + 's');
+    const animSpeed = Math.max(0.5, 1 - (gameSpeed - 3) / 10);
+    if (groundElement) {
+        groundElement.style.animationDuration = animSpeed + 's';
+    }
 }
 
 // Player jump - with double jump!
@@ -179,7 +196,7 @@ function resetComboTimer() {
     comboTimer = setTimeout(() => {
         combo = 0;
         updateComboDisplay();
-    }, 2000); // Combo lasts 2 seconds
+    }, 2000);
 }
 
 // Sound effects using Web Audio API - lazily initialized
@@ -204,14 +221,14 @@ function playSound(type) {
         if (type === 'jump') {
             oscillator.frequency.setValueAtTime(400, ctx.currentTime);
             oscillator.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.1);
-            gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+            gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
             oscillator.start(ctx.currentTime);
             oscillator.stop(ctx.currentTime + 0.1);
         } else if (type === 'doubleJump') {
             oscillator.frequency.setValueAtTime(600, ctx.currentTime);
             oscillator.frequency.exponentialRampToValueAtTime(900, ctx.currentTime + 0.1);
-            gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+            gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
             oscillator.start(ctx.currentTime);
             oscillator.stop(ctx.currentTime + 0.15);
@@ -219,7 +236,7 @@ function playSound(type) {
             oscillator.type = 'sawtooth';
             oscillator.frequency.setValueAtTime(200, ctx.currentTime);
             oscillator.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.3);
-            gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+            gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
             oscillator.start(ctx.currentTime);
             oscillator.stop(ctx.currentTime + 0.3);
@@ -227,7 +244,7 @@ function playSound(type) {
             oscillator.type = 'triangle';
             oscillator.frequency.setValueAtTime(400, ctx.currentTime);
             oscillator.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.5);
-            gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+            gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
             oscillator.start(ctx.currentTime);
             oscillator.stop(ctx.currentTime + 0.5);
@@ -245,12 +262,20 @@ function createObstacle() {
     obstacle.classList.add('obstacle');
     
     const type = Math.random();
+    let obstacleHeight, obstacleWidth;
+    
     if (type < 0.4) {
         obstacle.classList.add('type1');
+        obstacleWidth = 25;
+        obstacleHeight = 40;
     } else if (type < 0.7) {
         obstacle.classList.add('type2');
+        obstacleWidth = 35;
+        obstacleHeight = 30;
     } else {
         obstacle.classList.add('type3');
+        obstacleWidth = 20;
+        obstacleHeight = 55;
     }
     
     obstacle.style.left = '500px';
@@ -258,47 +283,80 @@ function createObstacle() {
     
     const obstacleData = {
         element: obstacle,
-        position: 500
+        position: 500,
+        width: obstacleWidth,
+        height: obstacleHeight
     };
     obstacles.push(obstacleData);
 }
 
-// Move and check obstacles
-function updateObstacles() {
+// Move and check obstacles - Optimized collision detection
+function updateObstacles(timestamp) {
     if (!isGameRunning || isPaused) return;
     
-    obstacles.forEach((obs, index) => {
+    // Throttle obstacle updates on mobile
+    if (isMobile && timestamp - lastObstacleUpdate < FRAME_TIME) {
+        return;
+    }
+    lastObstacleUpdate = timestamp;
+    
+    // Calculate player bounding box (cached values + jump offset)
+    const playerBottom = player.classList.contains('jumping') ? 60 + 150 : 60;
+    const playerLeft = 40;
+    const playerWidth = 35;
+    const playerHeight = 40;
+    
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obs = obstacles[i];
         obs.position -= gameSpeed;
         obs.element.style.left = obs.position + 'px';
         
-        const playerRect = player.getBoundingClientRect();
-        const obstacleRect = obs.element.getBoundingClientRect();
+        // Optimized collision detection using cached positions
+        // No getBoundingClientRect() - avoids reflow
+        const obsLeft = obs.position;
+        const obsRight = obs.position + obs.width;
+        const playerRight = playerLeft + playerWidth;
         
-        const padding = 8;
+        // Ground level collision check
+        const groundLevel = 60;
         
-        // Collision detection
-        if (
-            playerRect.right - padding > obstacleRect.left + padding &&
-            playerRect.left + padding < obstacleRect.right - padding &&
-            playerRect.bottom - padding > obstacleRect.top + padding
-        ) {
-            // Hit! Check if invulnerable
-            if (!invulnerable) {
-                handleHit();
+        // Check if obstacle is at ground level
+        if (obs.height >= 40) {
+            // Collision detection with optimized calculations
+            if (
+                playerRight - 8 > obsLeft + 8 &&
+                playerLeft + 8 < obsRight - 8 &&
+                playerBottom - 8 > groundLevel
+            ) {
+                // Hit! Check if invulnerable
+                if (!invulnerable) {
+                    handleHit();
+                }
+            }
+        } else {
+            // For shorter obstacles
+            if (
+                playerRight - 8 > obsLeft + 8 &&
+                playerLeft + 8 < obsRight - 8 &&
+                playerBottom - 8 > groundLevel
+            ) {
+                if (!invulnerable) {
+                    handleHit();
+                }
             }
         }
         
         // Remove off-screen obstacles
         if (obs.position < -50) {
             obs.element.remove();
-            obstacles.splice(index, 1);
+            obstacles.splice(i, 1);
             
-            // Bonus points for dodging!
+            // Bonus points for dodging
             if (!isGameOver) {
-                score += 5 + (combo * 2); // Combo bonus for dodging
+                score += 5 + (combo * 2);
             }
         }
-    });
+    }
 }
 
 function handleHit() {
@@ -313,17 +371,39 @@ function handleHit() {
         invulnerable = true;
         player.style.opacity = '0.5';
         
-        // Flash effect
+        // Flash effect using requestAnimationFrame instead of setInterval
         let flashCount = 0;
-        const flashInterval = setInterval(() => {
-            player.style.opacity = player.style.opacity === '0.5' ? '1' : '0.5';
-            flashCount++;
-            if (flashCount >= 6) {
-                clearInterval(flashInterval);
-                player.style.opacity = '1';
-                invulnerable = false;
+        const flashDuration = 250;
+        let lastFlashTime = 0;
+        
+        function flashEffect(currentTime) {
+            if (!invulnerable) return;
+            
+            if (currentTime - lastFlashTime >= flashDuration) {
+                player.style.opacity = player.style.opacity === '0.5' ? '1' : '0.5';
+                flashCount++;
+                lastFlashTime = currentTime;
+                
+                if (flashCount >= 6) {
+                    player.style.opacity = '1';
+                    invulnerable = false;
+                    return;
+                }
             }
-        }, 250);
+            
+            if (invulnerable) {
+                requestAnimationFrame(flashEffect);
+            }
+        }
+        
+        requestAnimationFrame(flashEffect);
+        
+        // Set invulnerability timeout
+        if (invulnerableTimer) clearTimeout(invulnerableTimer);
+        invulnerableTimer = setTimeout(() => {
+            invulnerable = false;
+            player.style.opacity = '1';
+        }, 1500);
     }
 }
 
@@ -332,8 +412,10 @@ function scheduleObstacle() {
     if (!isGameRunning || isPaused) return;
     
     createObstacle();
-    const nextSpawn = 2000 + Math.random() * 2000;
-    obstacleTimeout = setTimeout(scheduleObstacle, nextSpawn);
+    // Adjust spawn rate based on game speed
+    const baseSpawnTime = isMobile ? 2500 : 2000;
+    const nextSpawn = baseSpawnTime + Math.random() * 1500;
+    obstacleTimeout = setTimeout(scheduleObstacle, Math.max(800, nextSpawn - gameSpeed * 100));
 }
 
 // Toggle pause
@@ -344,7 +426,6 @@ function togglePause() {
     const pauseOverlay = document.getElementById('pauseOverlay');
     
     if (isPaused) {
-        // Clear the timeout when pausing
         if (obstacleTimeout) {
             clearTimeout(obstacleTimeout);
             obstacleTimeout = null;
@@ -352,15 +433,23 @@ function togglePause() {
         pauseOverlay.classList.remove('hidden');
     } else {
         pauseOverlay.classList.add('hidden');
-        // Restart obstacle spawning when resuming
-        scheduleObstacle();
+        lastFrameTime = performance.now();
+        lastObstacleUpdate = performance.now();
         updateGame();
     }
 }
 
-// Update game loop
-function updateGame() {
+// Update game loop with frame limiting
+function updateGame(timestamp = 0) {
     if (!isGameRunning || isPaused) return;
+    
+    // Frame rate limiting for mobile
+    const elapsed = timestamp - lastFrameTime;
+    if (elapsed < FRAME_TIME) {
+        animationId = requestAnimationFrame(updateGame);
+        return;
+    }
+    lastFrameTime = timestamp - (elapsed % FRAME_TIME);
     
     score += 0.3;
     updateScoreDisplay();
@@ -373,7 +462,7 @@ function updateGame() {
         updateGroundAnimation();
     }
     
-    updateObstacles();
+    updateObstacles(timestamp);
     
     animationId = requestAnimationFrame(updateGame);
 }
@@ -395,6 +484,10 @@ function startGame() {
     hasDoubleJumped = false;
     invulnerable = false;
     
+    // Reset timers
+    lastFrameTime = 0;
+    lastObstacleUpdate = 0;
+    
     createUI();
     updateLivesDisplay();
     updateComboDisplay();
@@ -412,7 +505,7 @@ function startGame() {
     player.classList.remove('jumping');
     player.style.opacity = '1';
     
-    // Resume audio context (needed for some browsers)
+    // Resume audio context
     if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
     }
@@ -438,6 +531,23 @@ function endGame() {
     if (animationId) {
         cancelAnimationFrame(animationId);
     }
+    
+    // Clear any pending timeouts
+    if (obstacleTimeout) {
+        clearTimeout(obstacleTimeout);
+        obstacleTimeout = null;
+    }
+    if (invulnerableTimer) {
+        clearTimeout(invulnerableTimer);
+        invulnerableTimer = null;
+    }
+}
+
+// Handle visibility change - pause game when tab/app is hidden
+function handleVisibilityChange() {
+    if (document.hidden && isGameRunning && !isGameOver && !isPaused) {
+        togglePause();
+    }
 }
 
 // Event Listeners
@@ -457,7 +567,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Touch/Click controls
+// Touch/Click controls with passive listeners for better mobile performance
 gameCanvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
     
@@ -468,7 +578,7 @@ gameCanvas.addEventListener('touchstart', (e) => {
     } else {
         jump();
     }
-});
+}, { passive: false });
 
 gameCanvas.addEventListener('click', (e) => {
     if (!isGameRunning && !isGameOver) {
@@ -480,13 +590,27 @@ gameCanvas.addEventListener('click', (e) => {
     }
 });
 
+// Prevent double-tap zoom on mobile
 document.addEventListener('dblclick', (e) => {
     e.preventDefault();
 });
+
+// Visibility change handler
+document.addEventListener('visibilitychange', handleVisibilityChange);
+
+// Prevent default touch behaviors
+document.body.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+}, { passive: false });
 
 // Initialize game
 loadHighScore();
 player.classList.add('running');
 createUI();
 initGroundElement();
+
+// Log performance mode
+if (isMobile) {
+    console.log('Pixel Runner: Mobile performance mode enabled');
+}
 
