@@ -1,13 +1,18 @@
-/* Pixel Runner - Retro Neon Style */
+/* Pixel Runner - Optimized for Mobile Performance */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+html, body {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+}
+
 body {
     font-family: 'Courier New', monospace;
-    background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0f0f1a 100%);
+    background: linear-gradient(180deg, #0a0a0f 0%, #1a1a2e 100%);
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -16,6 +21,7 @@ body {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    -webkit-user-select: none;
 }
 
 .game-container {
@@ -29,16 +35,16 @@ body {
     border: 3px solid #00ff88;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 
-        0 0 30px rgba(0, 255, 136, 0.3),
-        inset 0 0 50px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
 }
 
 /* Header */
 .game-header {
-    padding: 15px;
+    padding: 12px;
     background: linear-gradient(180deg, #1a1a2e 0%, #0d0d15 100%);
     border-bottom: 2px solid #00ff88;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 .score-board {
@@ -50,23 +56,22 @@ body {
 
 .score-label, .high-score-label {
     color: #00ff88;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
-    text-shadow: 0 0 10px #00ff88;
+    text-shadow: 0 0 5px #00ff88;
 }
 
 .score-value, .high-score-value {
     color: #fff;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
     font-family: 'Courier New', monospace;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     letter-spacing: 2px;
 }
 
 .high-score-label, .high-score-value {
     color: #ff6b6b;
-    text-shadow: 0 0 10px #ff6b6b;
+    text-shadow: 0 0 5px #ff6b6b;
 }
 
 /* Game Canvas */
@@ -75,9 +80,10 @@ body {
     position: relative;
     background: linear-gradient(180deg, #050510 0%, #0a0a1a 100%);
     overflow: hidden;
+    touch-action: manipulation;
 }
 
-/* Background Container */
+/* Background Container - Optimized */
 .background {
     position: absolute;
     top: 0;
@@ -85,67 +91,67 @@ body {
     right: 0;
     bottom: 0;
     z-index: 0;
-    background: linear-gradient(180deg, #000022 0%, #000044 50%, #000033 100%);
+    background: #000022;
 }
 
-/* Stars Layers - Very visible */
+/* Stars Layers - Optimized with will-change */
 .stars {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .stars-1 {
     background-image: 
-        radial-gradient(4px 4px at 30px 40px, #ffffff, transparent),
-        radial-gradient(4px 4px at 100px 120px, #ffffff, transparent),
-        radial-gradient(4px 4px at 200px 80px, #ffffff, transparent),
-        radial-gradient(4px 4px at 300px 200px, #ffffff, transparent),
-        radial-gradient(4px 4px at 400px 50px, #ffffff, transparent),
-        radial-gradient(4px 4px at 250px 300px, #ffffff, transparent),
-        radial-gradient(4px 4px at 450px 150px, #ffffff, transparent),
-        radial-gradient(4px 4px at 50px 250px, #ffffff, transparent);
+        radial-gradient(2px 2px at 30px 40px, #ffffff, transparent),
+        radial-gradient(2px 2px at 100px 120px, #ffffff, transparent),
+        radial-gradient(2px 2px at 200px 80px, #ffffff, transparent),
+        radial-gradient(2px 2px at 300px 200px, #ffffff, transparent),
+        radial-gradient(2px 2px at 400px 50px, #ffffff, transparent);
     background-size: 500px 350px;
     animation: starsMove1 20s linear infinite;
 }
 
 .stars-2 {
     background-image: 
-        radial-gradient(3px 3px at 80px 60px, #ffff00, transparent),
-        radial-gradient(3px 3px at 180px 140px, #ffff00, transparent),
-        radial-gradient(3px 3px at 280px 40px, #ffff00, transparent),
-        radial-gradient(3px 3px at 380px 180px, #ffff00, transparent),
-        radial-gradient(3px 3px at 150px 280px, #ffff00, transparent),
-        radial-gradient(3px 3px at 420px 250px, #ffff00, transparent);
+        radial-gradient(2px 2px at 80px 60px, #ffff00, transparent),
+        radial-gradient(2px 2px at 180px 140px, #ffff00, transparent),
+        radial-gradient(2px 2px at 280px 40px, #ffff00, transparent),
+        radial-gradient(2px 2px at 380px 180px, #ffff00, transparent);
     background-size: 500px 350px;
     animation: starsMove2 15s linear infinite;
 }
 
 @keyframes starsMove1 {
-    0% { background-position: 0 0; }
-    100% { background-position: -500px 0; }
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-500px); }
 }
 
 @keyframes starsMove2 {
-    0% { background-position: 0 0; }
-    100% { background-position: -500px 0; }
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-500px); }
 }
 
-/* Clouds */
+/* Clouds - Simplified */
 .clouds {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .cloud {
     position: absolute;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     border-radius: 50px;
+    will-change: transform;
 }
 
 .cloud::before, .cloud::after {
@@ -193,13 +199,6 @@ body {
     left: 10px;
 }
 
-.cloud-2::after {
-    width: 20px;
-    height: 20px;
-    top: -8px;
-    left: 30px;
-}
-
 .cloud-3 {
     width: 70px;
     height: 22px;
@@ -216,19 +215,12 @@ body {
     left: 12px;
 }
 
-.cloud-3::after {
-    width: 22px;
-    height: 22px;
-    top: -9px;
-    left: 38px;
-}
-
 @keyframes cloudMove {
-    0% { left: 100%; }
-    100% { left: -150px; }
+    0% { transform: translateX(0); }
+    100% { transform: translateX(calc(-100% - 150px)); }
 }
 
-/* Ground */
+/* Ground - Optimized */
 .ground {
     position: absolute;
     bottom: 0;
@@ -238,6 +230,8 @@ body {
     background: linear-gradient(180deg, #2d1b4e 0%, #1a0f2e 100%);
     border-top: 3px solid #00ff88;
     z-index: 1;
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .ground::before {
@@ -254,15 +248,16 @@ body {
         transparent 15px,
         transparent 30px
     );
+    will-change: transform;
     animation: groundMove 2s linear infinite;
 }
 
 @keyframes groundMove {
-    0% { background-position: 0 0; }
-    100% { background-position: -30px 0; }
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-30px); }
 }
 
-/* Player */
+/* Player - Hardware accelerated */
 .player {
     position: absolute;
     bottom: 60px;
@@ -271,6 +266,8 @@ body {
     height: 40px;
     z-index: 5;
     transition: transform 0.1s;
+    will-change: transform, bottom;
+    transform: translateZ(0);
 }
 
 .player-inner {
@@ -279,13 +276,11 @@ body {
     background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
     border: 3px solid #00ff88;
     border-radius: 5px;
-    box-shadow: 
-        0 0 20px rgba(0, 255, 136, 0.6),
-        inset 0 0 8px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
 }
 
 .player.running .player-inner {
-    animation: run 0.15s steps(2) infinite;
+    animation: run 0.3s ease-in-out infinite;
 }
 
 .player.jumping {
@@ -294,7 +289,7 @@ body {
 
 @keyframes run {
     0% { transform: scaleY(1); }
-    50% { transform: scaleY(0.85); }
+    50% { transform: scaleY(0.9); }
     100% { transform: scaleY(1); }
 }
 
@@ -306,7 +301,7 @@ body {
     100% { transform: translateY(0) rotate(360deg); }
 }
 
-/* Obstacles */
+/* Obstacles - Simplified shadows */
 .obstacles {
     position: absolute;
     top: 0;
@@ -323,7 +318,8 @@ body {
     background: linear-gradient(180deg, #ff6b6b 0%, #ee5a5a 100%);
     border: 3px solid #ff4757;
     border-radius: 5px 5px 0 0;
-    box-shadow: 0 0 15px rgba(255, 71, 87, 0.6);
+    will-change: transform, left;
+    transform: translateZ(0);
 }
 
 .obstacle.type1 {
@@ -337,7 +333,6 @@ body {
     border-radius: 50%;
     background: linear-gradient(135deg, #ffa502 0%, #ff7f50 100%);
     border-color: #ff7f50;
-    box-shadow: 0 0 15px rgba(255, 127, 80, 0.6);
 }
 
 .obstacle.type3 {
@@ -345,7 +340,6 @@ body {
     height: 55px;
     background: linear-gradient(180deg, #a55eea 0%, #8854d0 100%);
     border-color: #8854d0;
-    box-shadow: 0 0 15px rgba(136, 84, 208, 0.6);
 }
 
 /* Start Screen */
@@ -368,12 +362,10 @@ body {
 }
 
 .game-title {
-    font-size: 36px;
+    font-size: 32px;
     font-weight: bold;
     color: #00ff88;
-    text-shadow: 
-        3px 3px 0 #e94560,
-        0 0 20px #00ff88;
+    text-shadow: 2px 2px 0 #e94560, 0 0 15px #00ff88;
     margin-bottom: 30px;
     letter-spacing: 3px;
     animation: titlePulse 2s ease-in-out infinite;
@@ -385,10 +377,9 @@ body {
 }
 
 .tap-text {
-    font-size: 18px;
+    font-size: 16px;
     color: #fff;
     animation: blink 1s infinite;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 @keyframes blink {
@@ -416,36 +407,28 @@ body {
 }
 
 .game-over-text {
-    font-size: 32px;
+    font-size: 28px;
     font-weight: bold;
     color: #ff6b6b;
-    text-shadow: 0 0 20px #ff6b6b;
+    text-shadow: 0 0 15px #ff6b6b;
     margin-bottom: 15px;
     letter-spacing: 3px;
 }
 
 .score-text {
-    font-size: 20px;
+    font-size: 18px;
     color: #ffa502;
     margin-bottom: 25px;
-    text-shadow: 0 0 10px rgba(255, 165, 2, 0.5);
 }
 
 /* Lives Display */
-#livesContainer {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
 .lives-label {
     color: #ff6b6b;
-    font-size: 14px;
-    text-shadow: 0 0 10px #ff6b6b;
+    font-size: 12px;
 }
 
 #lives {
-    font-size: 16px;
+    font-size: 14px;
 }
 
 /* Combo Display */
@@ -458,14 +441,12 @@ body {
 .combo-label {
     font-size: 10px;
     color: #ffa502;
-    text-shadow: 0 0 5px #ffa502;
 }
 
 #combo {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     color: #ffa502;
-    text-shadow: 0 0 10px #ffa502;
     animation: comboPulse 0.5s ease-in-out infinite;
 }
 
@@ -494,16 +475,31 @@ body {
 }
 
 .pause-text {
-    font-size: 48px;
+    font-size: 40px;
     font-weight: bold;
     color: #00ff88;
-    text-shadow: 0 0 30px #00ff88;
+    text-shadow: 0 0 20px #00ff88;
     margin-bottom: 20px;
 }
 
 .pause-hint {
-    font-size: 18px;
+    font-size: 16px;
     color: #fff;
     animation: blink 1s infinite;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+    .game-title {
+        font-size: 26px;
+    }
+    
+    .player {
+        left: 25px;
+    }
+    
+    .score-value, .high-score-value {
+        font-size: 16px;
+    }
 }
 
